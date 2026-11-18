@@ -1,6 +1,6 @@
+import os
 import sqlite3
 import sys
-from PyQt6 import uic
 from PyQt6.QtWidgets import (
     QAbstractItemView,
     QApplication,
@@ -8,12 +8,17 @@ from PyQt6.QtWidgets import (
     QMainWindow,
     QTableWidgetItem,
 )
+from UI.add_edit_coffee_form_ui import Ui_AddEditCoffeeForm
+from UI.main_ui import Ui_MainWindow
 
 
-class AddEditCoffeeForm(QDialog):
+DB_PATH = os.path.join("data", "coffee.sqlite")
+
+
+class AddEditCoffeeForm(QDialog, Ui_AddEditCoffeeForm):
     def __init__(self, coffee_id=None):
         super().__init__()
-        uic.loadUi("addEditCoffeeForm.ui", self)
+        self.setupUi(self)
         self.coffee_id = coffee_id
         self.saveButton.clicked.connect(self.save_record)
 
@@ -21,7 +26,7 @@ class AddEditCoffeeForm(QDialog):
             self.load_record()
 
     def load_record(self):
-        connection = sqlite3.connect("coffee.sqlite")
+        connection = sqlite3.connect(DB_PATH)
         cursor = connection.cursor()
         row = cursor.execute(
             "SELECT sort_name, roast_degree, ground_or_beans, "
@@ -52,7 +57,7 @@ class AddEditCoffeeForm(QDialog):
         if not sort_name or not roast_degree or not ground_or_beans:
             return
 
-        connection = sqlite3.connect("coffee.sqlite")
+        connection = sqlite3.connect(DB_PATH)
         cursor = connection.cursor()
 
         if self.coffee_id is None:
@@ -90,10 +95,10 @@ class AddEditCoffeeForm(QDialog):
         self.accept()
 
 
-class CoffeeApp(QMainWindow):
+class CoffeeApp(QMainWindow, Ui_MainWindow):
     def __init__(self):
         super().__init__()
-        uic.loadUi("main.ui", self)
+        self.setupUi(self)
         self.tableWidget.setEditTriggers(
             QAbstractItemView.EditTrigger.NoEditTriggers
         )
@@ -120,7 +125,7 @@ class CoffeeApp(QMainWindow):
         self.tableWidget.setColumnCount(len(headers))
         self.tableWidget.setHorizontalHeaderLabels(headers)
 
-        connection = sqlite3.connect("coffee.sqlite")
+        connection = sqlite3.connect(DB_PATH)
         cursor = connection.cursor()
         rows = cursor.execute(
             "SELECT id, sort_name, roast_degree, ground_or_beans, "
